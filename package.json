@@ -1,0 +1,30 @@
+{
+  "name": "bpmntosaga",
+  "version": "0.0.2",
+  "description": "Utilities to transform BPMN graphs to Redux sagas",
+  "main": "build/index.js",
+  "module": "build/index.js",
+  "scripts": {
+    "build": "rm -rf build && babel src --out-dir build --copy-files --ignore __tests__,spec.js,test.js,__snapshots__",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsouflis/bpmntosaga.git"
+  },
+  "keywords": [
+    "bpmn",
+    "saga"
+  ],
+  "author": "dsouflis",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dsouflis/bpmntosaga/issues"
+  },
+  "homepage": "https://github.com/dsouflis/bpmntosaga#readme",
+  "devDependencies": {
+    "@babel/core": "^7.10.4",
+    "@babel/cli": "^7.10.4",
+    "babel-loader": "^8.1.0"
+  }
+}
