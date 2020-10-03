@@ -1,11 +1,11 @@
 # bpmntosaga
 > BPMN to Saga
 
-v0.0.6 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+v0.0.7 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Description
 
-Create Redux sagas from BPMN diagrams. 
+Create Redux sagas from BPMN diagrams. Create client objects from Swagger.
 
 ## Install
 
@@ -16,6 +16,6 @@ npm install --save bpmntosaga
 ## Usage
 
 ```javascript
-import { checkdiagram, diagramToSaga } from 'bpmntosaga';
+import { checkdiagram, diagramToSaga, swaggerToApi } from 'bpmntosaga';
 
 ```

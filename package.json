@@ -1,6 +1,6 @@
 {
   "name": "bpmntosaga",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Utilities to transform BPMN graphs to Redux sagas",
   "main": "build/index.js",
   "module": "build/index.js",
@@ -24,6 +24,8 @@
   "homepage": "https://github.com/dsouflis/bpmntosaga#readme",
   "peerDependencies": {
     "jsonpath": "^1.0.2",
-    "shift-parser": "^7.0.3"
+    "shift-parser": "^7.0.3",
+    "handlebars": "^4.7.6",
+    "swagger-client": "^3.11.0"
   }
 }
