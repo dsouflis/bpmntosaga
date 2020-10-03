@@ -1,6 +1,6 @@
 {
   "name": "bpmntosaga",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Utilities to transform BPMN graphs to Redux sagas",
   "main": "build/index.js",
   "module": "build/index.js",

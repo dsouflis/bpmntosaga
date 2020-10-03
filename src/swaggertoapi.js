@@ -10,13 +10,16 @@ const getClientForSwagger = url => new Promise((resolve, reject) => {
   );
 });
 
-const clientTmpl = Handlebars.compile(`//{{name}}
+const clientTmpl = Handlebars.compile(`//{{name}} {{url}}
 import SwaggerClient from 'swagger-client';
+
+const spec = {{{spec}}};
+
 const clientPromise = new SwaggerClient({
-  url: '{{url}}',
+  spec,
 });
 
-const f = (section, method) =>async (...args) => new Promise((resolve, reject) => {
+const f = (section, method) => async (...args) => new Promise((resolve, reject) => {
     clientPromise
     .then(
         client => client.apis[section][method](...args),
@@ -51,6 +54,7 @@ const swaggerToApi = async (api) => {
   let s = clientTmpl({
     name: api.name,
     url: api.url,
+    spec: JSON.stringify(client.spec, null, 2),
     operations
   });
   return s;
