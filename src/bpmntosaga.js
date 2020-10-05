@@ -47,14 +47,23 @@ const addOutgoing = (obj, diagram) => {
     if (!res.length) {
       console.log(`No flow found for ${outgoingId}`);
     } else {
-      obj.outgoing.push(res[0].$.targetRef);
+      if(outgoingId === obj.$.default) {
+        obj.default = res[0].$.targetRef;
+      } else {
+        obj.outgoing.push(res[0].$.targetRef);
+      }
     }
   });
 };
 
 const codeForNode = (e) => {
-  if (e.kind === 'bpmn:exclusiveGateway') {
-    return `  if(${e.text})`;
+  if (e.kind === 'bpmn:exclusiveGateway' && e.default) {
+    return `  if(!(${e.text})) {
+    yield ${e.default}(context);
+    return;
+  }`;
+  } else if (e.kind === 'bpmn:exclusiveGateway') {
+    return `  if(!(${e.text})) return;`;
   } else if (e.kind === 'bpmn:task') {
     return `  context['${e.$.name}'] = yield ${e.text};`;
   } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
