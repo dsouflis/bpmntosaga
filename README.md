@@ -1,7 +1,7 @@
 # bpmntosaga
 > BPMN to Saga
 
-v0.0.12 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+v0.0.13 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
 ## Description
 

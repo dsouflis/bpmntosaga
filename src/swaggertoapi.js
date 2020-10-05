@@ -46,6 +46,17 @@ const clientPromise = (auth) => new SwaggerClient({
   authorizations: auth || authorizations.authorizations
 });
 
+const fa = (section, method) => async (auth, ...args) => new Promise((resolve, reject) => {
+    clientPromise(auth)
+    .then(
+        client => client.apis[section][method](...args),
+        reason => reject(reason)
+    ).then(
+        result => resolve(result),
+        reason => reject(reason)
+    )
+  });
+
 const f = (section, method) => async (...args) => new Promise((resolve, reject) => {
     clientPromise()
     .then(
@@ -64,6 +75,7 @@ const inst = {
   },
 {{#each operations}}
   {{operation}}: f('{{tag}}','{{operation}}'),
+  auth_{{operation}}: fa('{{tag}}','{{operation}}'),
 {{/each}}  
 }
 
