@@ -13,19 +13,13 @@ const getClientForSwagger = url => new Promise((resolve, reject) => {
 
 const clientTmpl = Handlebars.compile(`//{{name}} {{url}}
 import SwaggerClient from 'swagger-client';
-import { createSelectorCreator, defaultMemoize } from 'reselect';
-import { isEqual } from 'lodash';
 import dot from 'dot-object';
+import merge from 'deepmerge';
 
 const spec = {{{spec}}};
 
 const authorizationsStatic = {{{authorizationsStatic}}};
 const authorizations = {};
-
-const createDeepEqualSelector = createSelectorCreator(
-    defaultMemoize,
-    isEqual
-);
 
 const authorizationsRecipe = (state) => ({
 {{#each authorizationsDynamic}}
@@ -33,21 +27,18 @@ const authorizationsRecipe = (state) => ({
 {{/each}}
 });
 
-const authorizationsSelector = createDeepEqualSelector(
-    state => {
-      let authorizationsDyn = authorizationsRecipe(state);
-      dot.object(authorizationsDyn);
-      console.log(authorizationsDyn);
-      return authorizationsDyn;
-    },
-    x => x
-);
+const authorizationsSelector = state => {
+  let authorizationsDyn = authorizationsRecipe(state);
+  dot.object(authorizationsDyn);
+  console.log(authorizationsDyn);
+  return authorizationsDyn;
+};
 
 const updateAuthorizations = store => () => {
-  authorizations.authorizations = ({
-    ...authorizationsStatic,
-    ...authorizationsSelector(store.getState())
-  });
+  authorizations.authorizations = merge(
+    authorizationsStatic,
+    authorizationsSelector(store.getState())
+  );
 };
 
 const clientPromise = (auth) => new SwaggerClient({
