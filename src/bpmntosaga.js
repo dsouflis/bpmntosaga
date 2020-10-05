@@ -59,11 +59,19 @@ const addOutgoing = (obj, diagram) => {
 const codeForNode = (e) => {
   if (e.kind === 'bpmn:exclusiveGateway' && e.default) {
     return `  if(!(${e.text})) {
-    yield ${e.default}(context);
+    yield* ${e.default}(context);
     return;
   }`;
   } else if (e.kind === 'bpmn:exclusiveGateway') {
     return `  if(!(${e.text})) return;`;
+  } else if (e.kind === 'bpmn:task' && e.default) {
+    return `
+  try {
+    context['${e.$.name}'] = yield ${e.text};
+  } catch(e) {
+    context['${e.$.name}'] = e;
+    yield* ${e.default}(context);
+  }`;
   } else if (e.kind === 'bpmn:task') {
     return `  context['${e.$.name}'] = yield ${e.text};`;
   } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
