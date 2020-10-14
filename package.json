@@ -1,6 +1,6 @@
 {
   "name": "bpmntosaga",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Utilities to transform BPMN graphs to Redux sagas and Swagger to client objects to use inside sagas",
   "main": "build/index.js",
   "module": "build/index.js",
@@ -28,6 +28,7 @@
     "handlebars": "^4.7.6",
     "dot-object": "^2.1.3",
     "deepmerge": "^4.2.2",
-    "swagger-client": "^3.11.0"
+    "swagger-client": "^3.11.0",
+    "xml2js": "^0.4.23"
   }
 }

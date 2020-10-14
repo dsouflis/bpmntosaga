@@ -25,9 +25,37 @@ const findTextAnnotationForId = (id, diagram) => {
   return foundTextAnnotation[0]["bpmn:text"];
 };
 
+const readCustomElements = (obj) => {
+  switch (obj.kind) {
+    case 'bpmn:startEvent':
+    case 'bpmn:endEvent':
+      if (obj['bpmn:messageEventDefinition'] && obj.$['custom:actionType']) {
+        return obj.$['custom:actionType'];
+      }
+      break;
+    case 'bpmn:exclusiveGateway':
+      if (obj.$['custom:condition']) {
+        return obj.$['custom:condition'];
+      }
+      break;
+    case 'bpmn:task':
+      if (obj['custom:call']) {
+        return obj['custom:call'];
+      }
+      break;
+    case 'bpmn:serviceTask':
+      if (obj['custom:script']) {
+        return obj['custom:script'];
+      }
+      break;
+    default:
+      return null;
+  }
+};
+
 const addTextAnnotation = (obj, diagram) => {
   const { id } = obj.$;
-  const res = findTextAnnotationForId(id, diagram);
+  const res = readCustomElements(obj) || findTextAnnotationForId(id, diagram);
   obj.text = res;
 };
 
@@ -72,8 +100,18 @@ const codeForNode = (e) => {
     context['${e.$.name}'] = e;
     yield* ${e.default}(context);
   }`;
+  } else if (e.kind === 'bpmn:serviceTask' && e.default) {
+    return `
+  try {
+    ${e.text};
+  } catch(e) {
+    context['${e.$.name}'] = e;
+    yield* ${e.default}(context);
+  }`;
   } else if (e.kind === 'bpmn:task') {
     return `  context['${e.$.name}'] = yield ${e.text};`;
+  } else if (e.kind === 'bpmn:serviceTask') {
+    return `  ${e.text};`;
   } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
     return `  yield put(${e.text});`;
   } else {
@@ -208,7 +246,7 @@ const checkdiagram = async (diagram) => {
       var jsText;
       if (e.kind === 'bpmn:exclusiveGateway') {
         jsText = `if(${e.text}) x = 1`;
-      } else if (e.kind === 'bpmn:task') {
+      } else if (e.kind === 'bpmn:task' || e.kind === 'bpmn:serviceTask') {
         jsText = e.text;
       } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
         jsText = `x = (${e.text})`;
