@@ -38,14 +38,14 @@ const readCustomElements = (obj) => {
         return obj.$['custom:condition'];
       }
       break;
-    case 'bpmn:task':
-      if (obj['custom:call']) {
-        return obj['custom:call'];
+    case 'bpmn:serviceTask':
+      if (obj.$['custom:effect']) {
+        return obj.$['custom:effect'];
       }
       break;
-    case 'bpmn:serviceTask':
-      if (obj['custom:script']) {
-        return obj['custom:script'];
+    case 'bpmn:scriptTask':
+      if (obj.$['custom:code']) {
+        return obj.$['custom:code'];
       }
       break;
     default:
@@ -92,7 +92,7 @@ const codeForNode = (e) => {
   }`;
   } else if (e.kind === 'bpmn:exclusiveGateway') {
     return `  if(!(${e.text})) return;`;
-  } else if (e.kind === 'bpmn:task' && e.default) {
+  } else if ((e.kind === 'bpmn:task' || e.kind === 'bpmn:serviceTask') && e.default) {
     return `
   try {
     context['${e.$.name}'] = yield ${e.text};
@@ -100,7 +100,7 @@ const codeForNode = (e) => {
     context['${e.$.name}'] = e;
     yield* ${e.default}(context);
   }`;
-  } else if (e.kind === 'bpmn:serviceTask' && e.default) {
+  } else if (e.kind === 'bpmn:scriptTask' && e.default) {
     return `
   try {
     ${e.text};
@@ -108,9 +108,9 @@ const codeForNode = (e) => {
     context['${e.$.name}'] = e;
     yield* ${e.default}(context);
   }`;
-  } else if (e.kind === 'bpmn:task') {
+  } else if (e.kind === 'bpmn:task' || e.kind === 'bpmn:serviceTask') {
     return `  context['${e.$.name}'] = yield ${e.text};`;
-  } else if (e.kind === 'bpmn:serviceTask') {
+  } else if (e.kind === 'bpmn:scriptTask') {
     return `  ${e.text};`;
   } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
     return `  yield put(${e.text});`;
@@ -143,7 +143,7 @@ const diagramToSaga = async (diagram) => {
           e.kind = key;
           addTextAnnotation(e, parsed);
           addOutgoing(e, parsed);
-          if (key === "bpmn:task" && e.text) {
+          if ((key === "bpmn:task" || key === "bpmn:serviceTask") && e.text) {
             try {
               // eslint-disable-next-line no-unused-vars
               const ast = parseScript(e.text);
@@ -246,7 +246,7 @@ const checkdiagram = async (diagram) => {
       var jsText;
       if (e.kind === 'bpmn:exclusiveGateway') {
         jsText = `if(${e.text}) x = 1`;
-      } else if (e.kind === 'bpmn:task' || e.kind === 'bpmn:serviceTask') {
+      } else if (e.kind === 'bpmn:task' || e.kind === 'bpmn:serviceTask' || e.kind === 'bpmn:scriptTask') {
         jsText = e.text;
       } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
         jsText = `x = (${e.text})`;
