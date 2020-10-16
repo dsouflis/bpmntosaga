@@ -1,9 +1,12 @@
 {
   "name": "bpmntosaga",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Utilities to transform BPMN graphs to Redux sagas and Swagger to client objects to use inside sagas",
   "main": "build/index.js",
   "module": "build/index.js",
+  "files": [
+    "build"
+  ],
   "scripts": {
     "build": "rm -rf build && mkdir build && cp src/*.js build",
     "test": "echo \"Error: no test specified\" && exit 1"
