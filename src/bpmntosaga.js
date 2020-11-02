@@ -28,9 +28,13 @@ const findTextAnnotationForId = (id, diagram) => {
 const readCustomElements = (obj) => {
   switch (obj.kind) {
     case 'bpmn:startEvent':
-    case 'bpmn:endEvent':
       if (obj['bpmn:messageEventDefinition'] && obj.$['custom:actionType']) {
         return obj.$['custom:actionType'];
+      }
+      break;
+    case 'bpmn:endEvent':
+      if (obj['bpmn:messageEventDefinition'] && obj.$['custom:effect']) {
+        return obj.$['custom:effect'];
       }
       break;
     case 'bpmn:exclusiveGateway':
@@ -113,7 +117,7 @@ const codeForNode = (e) => {
   } else if (e.kind === 'bpmn:scriptTask') {
     return `  ${e.text};`;
   } else if (e.kind === 'bpmn:endEvent' && e['bpmn:messageEventDefinition']) {
-    return `  yield put(${e.text});`;
+    return `  yield ${e.text.startsWith('put') ? e.text : "put(" + e.text + ")"};`;
   } else {
     return `  //....${e.kind}`;
   }
