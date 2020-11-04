@@ -15,6 +15,8 @@ const clientTmpl = Handlebars.compile(`//{{name}} {{url}}
 import SwaggerClient from 'swagger-client';
 import dot from 'dot-object';
 import merge from 'deepmerge';
+import zip from 'lodash/zip';
+import jp from "jsonpath";
 
 const spec = {{{spec}}};
 
@@ -46,10 +48,26 @@ const clientPromise = (auth) => new SwaggerClient({
   authorizations: auth || authorizations.authorizations
 });
 
+const findOperationById = (spec, operationId) => {
+  const path = \`$..*[?(@.operationId == "\${operationId}")]\`;
+  const results = jp.query(spec, path);
+  if (results.length) {
+    return results[0];
+  }
+  return null;
+};
+
+function combineWithNames(operationId, args) {
+  const oper = findOperationById(spec, operationId);
+  const paramNames = oper.parameters.map(x => x.name);
+  const zipped = Object.fromEntries(zip(paramNames, args));
+  return zipped;
+}
+
 const fa = (section, method) => async (auth, ...args) => new Promise((resolve, reject) => {
     clientPromise(auth)
     .then(
-        client => client.apis[section][method](...args),
+        client => client.apis[section][method](combineWithNames(method, args)),
         reason => reject(reason)
     ).then(
         result => resolve(result),
@@ -60,7 +78,7 @@ const fa = (section, method) => async (auth, ...args) => new Promise((resolve, r
 const f = (section, method) => async (...args) => new Promise((resolve, reject) => {
     clientPromise()
     .then(
-        client => client.apis[section][method](...args),
+        client => client.apis[section][method](combineWithNames(method, args)),
         reason => reject(reason)
     ).then(
         result => resolve(result),
@@ -92,12 +110,27 @@ export default inst;
         },
       }
 */
+
+const recipeTempl = Handlebars.compile(`{
+{{#each this}}
+  "{{key}}": {{{value}}},
+{{/each}}
+}`);
+
+const valueToRecipe = (value) => {
+  if(typeof value === "object") {
+    const iter = Object.entries(value).map(entry => ({ key: entry[0], value: valueToRecipe(entry[1])}));
+    return recipeTempl(iter);
+  }
+  return `dot.pick('${value}', state)`;
+};
+
 const swaggerToApi = async (api) => {
   const client = await getClientForSwagger(api.fileData);
   const operations = Object.entries(client.apis).flatMap(([tag, v]) => Object.keys(client.apis[tag]).map(operation => ({
     tag, operation
   })));
-  const recipe = Object.entries(api.authorizationsDynamic).map(entry => ({ key: entry[0], value: `dot.pick('${entry[1]}', state)`}));
+  const recipe = Object.entries(api.authorizationsDynamic).map(entry => ({ key: entry[0], value: valueToRecipe(entry[1])}));
   let s = clientTmpl({
     name: api.name,
     url: api.url,
