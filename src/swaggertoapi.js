@@ -2,8 +2,8 @@ const Handlebars = require("handlebars");
 const SwaggerClient = require('swagger-client');
 const dot = require('dot-object');
 
-const getClientForSwagger = url => new Promise((resolve, reject) => {
-  const clientPromise = new SwaggerClient(url);
+const getClientForSwagger = spec => new Promise((resolve, reject) => {
+  const clientPromise = new SwaggerClient({spec});
   clientPromise
   .then(
       client => resolve(client),
@@ -93,7 +93,7 @@ export default inst;
       }
 */
 const swaggerToApi = async (api) => {
-  const client = await getClientForSwagger(api.url);
+  const client = await getClientForSwagger(api.fileData);
   const operations = Object.entries(client.apis).flatMap(([tag, v]) => Object.keys(client.apis[tag]).map(operation => ({
     tag, operation
   })));
