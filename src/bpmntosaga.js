@@ -128,7 +128,9 @@ const diagramToSaga = async (diagram) => {
   const parsed = await parser.parseStringPromise(diagram);
 
   // console.log(JSON.stringify(parsed, null, 2));
-  saga += (`import { call, put, take, takeEvery, takeLatest, spawn, select } from 'redux-saga/effects';\nimport axios from 'axios';\n`);
+  saga += (`import { call, put, take, takeEvery, takeLatest, spawn, select } from 'redux-saga/effects';
+import axios from 'axios';
+`);
 
   Object.entries(parsed["bpmn:definitions"]["bpmn:process"]).forEach(
       ([key, value]) => {
