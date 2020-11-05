@@ -112,21 +112,24 @@ export default inst;
 */
 
 const recipeTempl = Handlebars.compile(`{
-{{#each this}}
-  "{{key}}": {{{value}}},
+{{#each entries}}
+{{indent}}    "{{key}}": {{{value}}},
 {{/each}}
-}`);
+{{indent}}  }`);
 
-const valueToRecipe = (value) => {
+const valueToRecipe = (value, indent = "") => {
   if(typeof value === "object") {
-    const iter = Object.entries(value).map(entry => ({ key: entry[0], value: valueToRecipe(entry[1])}));
-    return recipeTempl(iter);
+    const iter = Object.entries(value).map(entry => ({ key: entry[0], value: valueToRecipe(entry[1], indent + "  ")}));
+    return recipeTempl({
+      entries: iter,
+      indent
+    });
   }
   return `dot.pick('${value}', state)`;
 };
 
 const swaggerToApi = async (api) => {
-  const client = await getClientForSwagger(api.fileData);
+  const client = await getClientForSwagger(api.spec);
   const operations = Object.entries(client.apis).flatMap(([tag, v]) => Object.keys(client.apis[tag]).map(operation => ({
     tag, operation
   })));
