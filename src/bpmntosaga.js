@@ -88,10 +88,10 @@ const addOutgoing = (obj, diagram) => {
   });
 };
 
-const codeForNode = (e) => {
+const codeForNode = (e, context) => {
   if (e.kind === 'bpmn:exclusiveGateway' && e.default) {
     return `  if(!(${e.text})) {
-    yield* ${e.default}(context);
+    yield* ${e.default}(${context});
     return;
   }`;
   } else if (e.kind === 'bpmn:exclusiveGateway') {
@@ -102,7 +102,7 @@ const codeForNode = (e) => {
     context['${e.$.name}'] = yield ${e.text};
   } catch(e) {
     context['${e.$.name}'] = e;
-    yield* ${e.default}(context);
+    yield* ${e.default}(${context});
   }`;
   } else if (e.kind === 'bpmn:scriptTask' && e.default) {
     return `
@@ -110,7 +110,7 @@ const codeForNode = (e) => {
     ${e.text};
   } catch(e) {
     context['${e.$.name}'] = e;
-    yield* ${e.default}(context);
+    yield* ${e.default}(${context});
   }`;
   } else if (e.kind === 'bpmn:task' || e.kind === 'bpmn:serviceTask') {
     return `  context['${e.$.name}'] = yield ${e.text};`;
@@ -123,8 +123,11 @@ const codeForNode = (e) => {
   }
 }
 
-const diagramToSaga = async (diagram) => {
+const diagramToSaga = async (diagram, useGlobalContext) => {
   var saga = '';
+  const context = useGlobalContext ? "" : "context";
+  const contextInitial = useGlobalContext ? "" : "{}";
+  const contextComma = useGlobalContext ? "" : "context,";
   const parsed = await parser.parseStringPromise(diagram);
 
   // console.log(JSON.stringify(parsed, null, 2));
@@ -177,6 +180,11 @@ import axios from 'axios';
   );
 
   // console.log(JSON.stringify(parsed["bpmn:definitions"]["bpmn:process"], null, 2));
+  if(useGlobalContext) {
+    saga += `
+const context = {};
+`
+  }
 
   const startEvent = parsed["bpmn:definitions"]["bpmn:process"]["bpmn:startEvent"];
   if (startEvent instanceof Array) {
@@ -185,7 +193,7 @@ import axios from 'axios';
   } else {
     saga += (`
 function* saga () {
-  yield* ${startEvent.$.id}({});
+  yield* ${startEvent.$.id}(${contextInitial});
 }\n`);
   }
 
@@ -196,23 +204,23 @@ function* saga () {
     const array = (value instanceof Array) ? value : [value];
     array.forEach(e => {
       const cont = e.outgoing.length === 1 ?
-          `  yield* ${e.outgoing[0]}(context);` :
-          e.outgoing.map(id => `  yield spawn(${id}, context);`).join('\n');
+          `  yield* ${e.outgoing[0]}(${context});` :
+          e.outgoing.map(id => `  yield spawn(${id}, ${context});`).join('\n');
       if (e.kind === 'bpmn:startEvent' && e["bpmn:messageEventDefinition"]) {
         saga += (`
-function* ${e.$.id} (context) {
-  yield takeEvery('${e.text}', ${e.$.id}_fork, context);
+function* ${e.$.id} (${context}) {
+  yield takeEvery('${e.text}', ${e.$.id}_fork, ${context});
 }
 
-function* ${e.$.id}_fork (context, action) {
+function* ${e.$.id}_fork (${contextComma} action) {
   context['${e.$.name}'] = action;
 ${cont}
 }\n`);
 
       } else {
-        const code = codeForNode(e);
+        const code = codeForNode(e, context);
         saga += (`
-function* ${e.$.id} (context) {
+function* ${e.$.id} (${context}) {
 ${code}
 ${cont}
 }\n`);
