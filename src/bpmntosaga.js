@@ -133,6 +133,7 @@ const diagramToSaga = async (diagram, useGlobalContext) => {
   // console.log(JSON.stringify(parsed, null, 2));
   saga += (`import { call, put, take, takeEvery, takeLatest, spawn, select } from 'redux-saga/effects';
 import axios from 'axios';
+import dot from 'dot-object';
 import { push, replace, go, goBack, goForward } from 'connected-react-router';
 `);
 
