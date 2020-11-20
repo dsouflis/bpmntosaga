@@ -57,17 +57,21 @@ const findOperationById = (spec, operationId) => {
   return null;
 };
 
-function combineWithNames(operationId, args) {
+{{#if positional}}
+const combineWithNames = (operationId, args) => {
   const oper = findOperationById(spec, operationId);
   const paramNames = oper.parameters.map(x => x.name);
   const zipped = Object.fromEntries(zip(paramNames, args));
-  return zipped;
+  return [zipped];
 }
+{{else}}
+const combineWithNames = (_, args) => args;
+{{/if}}
 
 const fa = (section, method) => async (auth, ...args) => new Promise((resolve, reject) => {
     clientPromise(auth)
     .then(
-        client => client.apis[section][method](combineWithNames(method, args)),
+        client => client.apis[section][method](...combineWithNames(method, args)),
         reason => reject(reason)
     ).then(
         result => resolve(result),
@@ -78,7 +82,7 @@ const fa = (section, method) => async (auth, ...args) => new Promise((resolve, r
 const f = (section, method) => async (...args) => new Promise((resolve, reject) => {
     clientPromise()
     .then(
-        client => client.apis[section][method](combineWithNames(method, args)),
+        client => client.apis[section][method](...combineWithNames(method, args)),
         reason => reject(reason)
     ).then(
         result => resolve(result),
